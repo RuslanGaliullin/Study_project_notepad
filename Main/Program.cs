@@ -11,11 +11,11 @@ namespace Main
 {
     static class Program
     {
-        // Контест с текущим потоком главного окна.
+        // Contest with the current flow of the main window.
         internal static ApplicationContext s_context { get; set; }
 
         /// <summary>
-        /// Точка входа.
+        /// Entry point.
         /// </summary>
         [STAThreadAttribute]
         public static void Main()

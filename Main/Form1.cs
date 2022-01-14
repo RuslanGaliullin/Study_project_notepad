@@ -5,42 +5,41 @@ using System.IO;
 using System.Windows.Forms;
 using System.Linq;
 
-// У меня одна вкладка == одному файлу, поэтому могу заменять слово вкладка и файл. Они эквивалентны.
-// Аналогично слово форма == окно, так как каждая форма - отдельное окно.
+// I have one tab == one file, so I can replace the word tab and file. They are equivalent.
+// Similarly, the word form == window, since each form is a separate window.
 
 namespace Main
 {
     public partial class Form1 : Form
     {
-        // Список всех файлов, открытых(созданных) в окне.
+        // List of all files opened (created) in the window.
         private readonly List<FileInUse> files = new();
 
-        // Текущий открытый файл(вкладка в окне.
+        // The currently open file(tab in the window.
         private FileInUse curFile;
 
-        // Номер формы, чтобы отследить, когда создается новая форма при открытии, а когда из другого окна.
+        // Form number to track when a new form is created when opened, and when from another window.
         private readonly bool isFirst;
 
         /// <summary>
-        /// Конструктор форм. Инициализация всех компонентов, запуска StartForm метода.
+        /// Form constructor. Initialization of all components, launching the StartForm method.
         /// </summary>
-        /// <param name="isFirst">Параметр того, что сто форма создана при запуске приложения.</param>
+        /// <param name="is First">The parameter that the form was created when the application was launched.</param>
         public Form1(bool isFirst)
         {
             InitializeComponent();
             this.Text = $"NotePad+";
             this.isFirst = isFirst;
-            // Установка основных общих параметров формы.
+            // Setting the basic general parameters of the form.
             StartForm();
         }
 
         /// <summary>
-        /// Установка общих парметров для формы: фильтры для доступных файлов, восстановление при необходимости
-        /// настроек предыдущего запуска, установка таймера, добавления контрола с вкладками.
+        /// Setting common parmeters for the form: filters for available files, restore if necessary
+        /// settings of the previous launch, setting the timer, adding controls with tabs.
         /// </summary>
         private void StartForm()
         {
-            //TabControl page1 = new TabControl();
             timer.Interval = 1;
             timer.Enabled = false;
             timer.Tick += TimerTick;
@@ -54,153 +53,153 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик событий нажатия на кнопки: "Создать в новой вкладке" или "Открыть в новой вкладке".
+        /// Event handler for button clicks: "Create in a new tab" or "Open in a new tab".
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void OpenInNewTab(object sender, EventArgs e)
         {
-            // Если нажали на кнопку "Создать в новой вкладке".
+            // If you clicked on the "Create in a new tab" button.
             if (sender.ToString().Contains("&Создать"))
             {
                 CreateTheTab(this, "", "Безымянный", true);
             }
             else
             {
-                // Если нажали "Открыть в новой вкладке".
+                // If you clicked "Open in a new tab".
                 openFileDialog.InitialDirectory = Directory.GetDirectoryRoot(Directory.GetCurrentDirectory());
                 if (openFileDialog.ShowDialog() != DialogResult.OK)
                 {
                     return;
                 }
-                // Открытие файла, в котором идет проверка на отлов ошибки.
+                // Opening the file in which the error is being checked for catching.
                 if (ShowText(openFileDialog.FileName, out string text))
                 {
-                    // Если все нормально открывается, то создаем новую вкладку.
+                    // If everything opens normally, then create a new tab.
                     CreateTheTab(this, text, openFileDialog.FileName, false);
                 }
                 else
                 {
-                    // Если что-то пошло не так, то выводим сообщение об ошибке.
+                    // If something went wrong, then we output an error message.
                     MessageBox.Show(text);
                 }
             }
         }
 
         /// <summary>
-        /// Обработчик событий нажатия на кнопки: "Создать в новом окне" или "Открыть в новом окне".
+        /// Event handler for button clicks: "Create in a new window" or "Open in a new window".
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void OpenInNewForm(object sender, EventArgs e)
         {
-            // Если требуется создать файл в новом окне.
+            // If you want to create a file in a new window.
             if (sender.ToString().Contains("&Создать"))
             {
                 Form1 newForm = new(false);
-                // Добавление в общий список окон.
+                // Adding to the general list of windows.
                 MyForms.Add(newForm);
                 CreateTheTab(newForm, "", "Безымянный", true);
                 newForm.Show();
             }
             else
             {
-                // Открыть существующий файл в новом окне
+                // Open an existing file in a new window
                 openFileDialog.InitialDirectory = Directory.GetDirectoryRoot(Directory.GetCurrentDirectory());
                 if (openFileDialog.ShowDialog() != DialogResult.OK)
                     return;
-                // Открытие файла, в котором идет проверка на отлов ошибки.
+                // Opening the file in which the error is being checked for catching.
                 if (ShowText(openFileDialog.FileName, out string text))
                 {
                     Form1 newForm = new(false);
-                    // Добавление окна в общий список окон.
+                    // Adding a window to the general list of windows.
                     MyForms.Add(newForm);
-                    // Если все нормально открывается, то создаем новую вкладку, но в созданном окне.
+                    // If everything opens normally, then create a new tab, but in the created window.
                     CreateTheTab(newForm, text, openFileDialog.FileName, false);
                     newForm.Show();
                 }
                 else
                 {
-                    // Если что-то пошло не так, то выводим сообщение об ошибке.
+                    // If something went wrong, then we output an error message.
                     MessageBox.Show(text);
                 }
             }
         }
 
         /// <summary>
-        /// Обработчик нажатия на кнопку "Сохранить в текущей вкладке".
+        /// Handler for clicking on the "Save to current tab" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void FileInCurrentPage(object sender, EventArgs e)
         {
-            // Если нет открытых вкладок, то выполняем как для события "Открыть в новой вкладке".
+            // If there are no open tabs, then we execute as for the "Open in a new tab" event.
             if (tabControl.TabPages.Count == 0)
             {
                 OpenInNewTab(openNewTabToolStripMenuItem, e);
                 return;
             }
-            // Если есть, то закрываем текущую и открываем новую. Если сделать отмену открытия файла, то текущая закроется!
+            // If there is, then close the current one and open a new one. If you cancel the opening of the file, the current one will close!
             DialogSaveToCloseCurrentTab(closeCurrentTabToolStripMenuItem, e);
             if (curFile.IsSaved)
             {
                 files.Remove(curFile);
                 tabControl.TabPages.Remove(tabControl.SelectedTab);
-                // Вызываем обработчик нажатия на кнопку открытия в новой вкладке.
+                // Calling the handler for clicking on the open button in a new tab.
                 OpenInNewTab(openNewTabToolStripMenuItem, e);
             }
         }
 
         /// <summary>
-        /// Метод для создание новой вкладки в конкретном окне.
+        /// Method for creating a new tab in a specific window.
         /// </summary>
-        /// <param name="form">Форма, в которой будет новая вкладка.</param>
-        /// <param name="text">Текст, который должен быть записан в RichTExtBox.</param>
-        /// <param name="fileName">Файл, который открывается в новой вкладке.</param>
-        /// <param name="isNew">Параметр того, что файл только создан или уже существует.</param>
+        /// <param name="form">The form where the new tab will be.</param>
+        /// <param name="text">The text to be written to the RichTextBox.</param>
+        /// <param name="fileName">A file that opens in a new tab.</param>
+        /// <param name="isNew">The parameter that the file has just been created or already exists.</param>
         private void CreateTheTab(Form1 form, string text, string fileName, bool isNew)
         {
             try
             {
-                // Если файл новый, то вкладка будет иметь заголовок "Безымянный", иначе имя файла.
+                // If the file is new, the tab will have the title "Unnamed", otherwise the file name.
                 TabPage newTabPage = new(isNew ? "Безымянный" : Path.GetFileName(fileName));
                 RichTextBox textBox = new();
                 textBox.Dock = DockStyle.Fill;
                 textBox.ContextMenuStrip = contextMenuStrip1;
                 newTabPage.Controls.Add(textBox);
-                // Открываем уже существующий файл в rtf, если у него соответствующее разрешение.
+                // Open an existing file in rtf, if it has the appropriate permission.
                 if (!isNew && Path.GetExtension(fileName) == ".rtf")
                 {
                     textBox.LoadFile(fileName, RichTextBoxStreamType.RichText);
                 }
-                // В противном случае записываем содержимое файла в текстовом формате.
+                // Otherwise, we write the contents of the file in text format.
                 else
                 {
                     textBox.Text += text;
                 }
                 form.tabControl.TabPages.Add(newTabPage);
-                // Изменяем текущую вкладку в окне.
+                // Changing the current tab in the window.
                 form.tabControl.SelectedTab = newTabPage;
-                // Изменяем текущий открытый файл в окне.
+                // Changing the currently open file in the window.
                 form.curFile = new FileInUse(fileName, textBox, newTabPage, isNew);
-                // Добавляем новый файл ко всем открытым в окне.
+                // Add a new file to all open in the window.
                 form.files.Add(form.curFile);
-                // Добавляем обработчик изменения текста у RichTextBox'а, чтобы изменять статус сохраненности файла.
+                // Adding a text change handler for RichTextBox to change the save status of the file.
                 form.curFile.TextBox.TextChanged += new EventHandler(form.TextHasChanged);
             }
             catch (Exception e)
             {
-                // Сообщение об ошибке.
+                // Error message.
                 MessageBox.Show(e.Message);
             }
         }
 
         /// <summary>
-        /// Метод для выгрузки содирежимого файла в формате txt>
+        /// Method for uploading the contents of a file in txt format>
         /// </summary>
-        /// <param name="filename">Имя файла.</param>
-        /// <param name="text">Текст содержимого файла или сообщение об ошибке.</param>
-        /// <returns>Информация, что файл открылся без ошибок (true/false).</returns>
+        /// <param name="filename">File name.</param>
+        /// <param name="text">The text of the file contents or an error message.</param>
+        /// <returns>Information that the file opened without errors (true/false).</returns>
         private static bool ShowText(string filename, out string text)
         {
             try
@@ -216,36 +215,36 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик событий нажатия на кнопку "Сохранить".
+        /// Event handler for clicking on the "Save" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void SaveCurrentFile(object sender, EventArgs e)
         {
-            // Если сейчас открыт какой-то файл, но он создан в приложении(новый).
+            // If a file is currently open, but it is created in the application (new).
             if (curFile != null && curFile.IsNew)
             {
-                // Вызываем обработчик события нажания но кнопку "Сохранить как" т.к. файл новый.
+                // // We call the event handler for clicking on the "Save as" button because the file is new.
                 SaveAsCurrentFile(saveAsToolStripMenuItem, e);
             }
-            // Если сейчас открыт какой-то файл, который еще не сохранен
+            // If some file is currently open that has not been saved yet
             else if (curFile != null && !curFile.IsSaved)
             {
                 try
                 {
-                    // Сохраняем последнюю версию файла.
+                    // Saving the latest version of the file.
                     Logging();
-                    // Если разрешение файла .txt, то сохраняем записывание просто содержимого RichTextBox  в файл.
+                    // If the file resolution is .txt, then we save writing just the contents of the RichTextBox to a file.
                     if (Path.GetExtension(curFile.FileName) != ".rtf")
                     {
                         File.WriteAllText(curFile.FileName, curFile.TextBox.Text);
                     }
-                    // В противном случае сохраняем с форматированием как rtf.
+                    // Otherwise, we save it with formatting as rtf.
                     else
                     {
                         curFile.TextBox.SaveFile(curFile.FileName, RichTextBoxStreamType.RichText);
                     }
-                    // Убираем звездочку из заголовка вкладки, которая говорит о том, что файл не сохранен.
+                    // Remove the asterisk from the tab header, which indicates that the file has not been saved.
                     curFile.TabPage.Text = Path.GetFileName(curFile.FileName);
                     curFile.IsSaved = true;
                 }
@@ -257,15 +256,15 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчки событий нажатия на кнопку "Сохранить как".
+        /// Event handler for clicking on the "Save as" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void SaveAsCurrentFile(object sender, EventArgs e)
         {
             try
             {
-                // Проверка, что есть файл, который сохраняется.
+                // Checking that there is a file that is being saved.
                 if (curFile == null)
                 {
                     return;
@@ -274,19 +273,19 @@ namespace Main
                 if (saveFileDialog.ShowDialog() == DialogResult.OK &&
                    saveFileDialog.FileName.Length > 0)
                 {
-                    // Сохраняем предыдущую версию.
+                    // Saving the previous version.
                     Logging();
-                    // .txt сохраняем простым записыванием текста в файл.
+                    // .txt is saved by simply writing text to a file.
                     if (Path.GetExtension(saveFileDialog.FileName) != ".rtf")
                     {
                         File.WriteAllText(saveFileDialog.FileName, curFile.TextBox.Text);
                     }
-                    // В се остальные файлы с сохранением форматирования.
+                    // The rest of the files are in ce with the formatting preserved.
                     else
                     {
                         curFile.TextBox.SaveFile(saveFileDialog.FileName, RichTextBoxStreamType.RichText);
                     }
-                    // Меняем заголовк вкладки.
+                    // Changing the tab header.
                     curFile.FileName = saveFileDialog.FileName;
                     curFile.TabPage.Text = Path.GetFileName(curFile.FileName);
                     curFile.IsSaved = true;
@@ -300,46 +299,46 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события изменения текста в RichTextBox’е.
+        /// Handler for the text change event in RichTextBox.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void TextHasChanged(object sender, EventArgs e)
         {
             if (curFile != null && curFile.IsSaved)
             {
-                // Меняем статус файла на несохраненный и в заголовке добавляем звездочку.
+                // Changing the file status to unsaved and adding an asterisk in the header.
                 curFile.TabPage.Text = "*" + curFile.TabPage.Text;
                 curFile.IsSaved = false;
             }
         }
         /// <summary>
-        /// Добавление обработчика переключения вкладки. При создании формы
+        /// Adding a tab switch handler. When creating a form
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void Form1_Load(object sender, EventArgs e)
         {
             tabControl.Selected += new TabControlEventHandler(ChangeSelectedTab);
         }
         /// <summary>
-        /// Обрамотчик события изменения текущей вкладки.
+        /// The event handler for changing the current tab.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void ChangeSelectedTab(object sender, TabControlEventArgs e)
         {
             if (files.Count != 0)
             {
-                // Ищим среди файлов тот, у которого свойство tabPage соответствует открытой вкладке.
+                // We are looking among the files for the one with the TabPage property corresponding to the open tab.
                 curFile = files.Find(x => x.TabPage == tabControl.SelectedTab);
-                // Если мы меняем текущий файл, то меняем и настройки сохранений версий в соотвествии с настройками
-                // для файла.
+                // If we change the current file, we also change the settings for saving versions in accordance with the settings
+                // for the file.
                 if (curFile != null)
                 {
                     loggingToolStripMenuItem.Checked = curFile.Log;
                 }
-                // Если нету открытого файла или был создан новый, то выключаем журналирование по умолчанию.
+                // If there is no open file or a new one has been created, then turn off logging by default.
                 else
                 {
                     loggingToolStripMenuItem.Checked = false;
@@ -348,40 +347,40 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Закрыть вкладку".
+        /// Event handler for clicking on the "Close tab" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void CloseCurrentTab(object sender, EventArgs e)
         {
-            // Вызываем метод для того, чтобы понять что хочет делать с файлом, который будет закрыт
+            // Calling the method in order to understand what he wants to do with the file that will be closed
             DialogSaveToCloseCurrentTab(closeCurrentTabToolStripMenuItem, e);
-            // Если файл есть и все необхоимые сохранения были выполнены.
+            // If there is a file and all necessary saves have been performed.
             if (curFile != null && curFile.IsSaved)
             {
-                // Чистим список открытых файлов и вкладок.
+                // Cleaning the list of open files and tabs.
                 files.Remove(curFile);
                 tabControl.TabPages.Remove(tabControl.SelectedTab);
                 if (files.Count != 0)
                 {
-                    // Ищим среди файлов тот, у которого свойство tabPage соответствует открытой вкладке.
+                    // We are looking among the files for the one with the TabPage property corresponding to the open tab.
                     curFile = files.Find(x => x.TabPage == tabControl.SelectedTab);
                 }
                 else
                 {
-                    // Или присваиваем ему null в противном случае.
+                    // Or assign it null otherwise.
                     curFile = null;
-                    // Если все закрыли, то можно убрать галочку на журналирование.
+                    // If everything is closed, then you can uncheck logging.
                     loggingToolStripMenuItem.Checked = false;
                 }
             }
         }
 
         /// <summary>
-        /// Метод для вызова диалогового окна с запросом, чтобы понять хочет пользователь закрыть ТЕКУЩИЙ файл.
+        /// Method for calling a dialog box with a request to understand if the user wants to close the CURRENT file.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void DialogSaveToCloseCurrentTab(object sender, EventArgs e)
         {
             if (curFile != null && !curFile.IsSaved)
@@ -390,11 +389,11 @@ namespace Main
                     $" изменения в файле \"{curFile.FileName}\"?");
                 switch (result)
                 {
-                    // Файл нужно сохранить.
+                    // The file needs to be saved.
                     case DialogResult.Yes:
                         SaveCurrentFile(sender, e);
                         return;
-                    // Файл сохранять не нужно, следовательно, он итак сохранен с изначальным значением.
+                    // The file does not need to be saved, therefore, it is saved with the original value.
                     case DialogResult.No:
                         curFile.IsSaved = true;
                         return;
@@ -405,14 +404,14 @@ namespace Main
         }
 
         /// <summary>
-        /// Всомогательный метод, который вызывает MessageBox конкретным текстом и выборо ответов: да, нет, отмена.
+        /// A helpful method that calls MessageBox with a specific text and a selection of responses: yes, no, cancel.
         /// </summary>
-        /// <param name="message">Сообщение в MessageBox.</param>
-        /// <returns>Выбранный пользователем ответ.</returns>
+        /// <param name="message">A message in the MessageBox.</param>
+        /// <returns>The response selected by the user.</returns>
         private static DialogResult CloseDialogWindow(string message)
         {
             DialogResult result = MessageBox.Show(message,
-                "Сообщение",
+                "Message",
                 MessageBoxButtons.YesNoCancel,
                 MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button1
@@ -421,39 +420,39 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Закрыть все".
+        /// Event handler for clicking on the "Close all" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void CloseAllTabs(object sender, EventArgs e)
         {
-            // Сохранение несохраненных файлов или отмена закрытий.
+            // Saving unsaved files or canceling closures.
             CloseAllTabsFunc(sender, e);
-            // Если не остались несохраненные, значит пользователь не отменял никакую операцию сохранения.
-            if (!files.Exists(x => x.IsSaved == false))
+            // If there are no unsaved ones left, it means that the user did not cancel any save operation.
+            if (!files.Exists(x => x.Issued == false))
             {
-                // Очиства открытых файлов и вкладок.
+                // The number of open files and tabs.
                 files.Clear();
                 tabControl.TabPages.Clear();
                 curFile = null;
-                // Если все закрыли, то можно убрать галочку на журналирование.
+                // If everything is closed, then you can uncheck logging.
                 loggingToolStripMenuItem.Checked = false;
             }
         }
 
         /// <summary>
-        /// Вспомогательный метод для обрабокти ответа от пользователя касательно сохранения файлов при закрытии вкладок
-        /// с последующим сохранением всех файлов окна, если надо.
+        /// Auxiliary method for processing a response from the user regarding saving files when closing tabs
+        /// with subsequent saving of all window files, if necessary.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void CloseAllTabsFunc(object sender, EventArgs e)
         {
             int needSave = -1;
-            // Если есть несохраненные файлы запрос на то, что с ними делать.
+            // If there are unsaved files, a request for what to do with them.
             if (files.Exists(x => x.IsSaved == false))
             {
-                switch (CloseDialogWindow($"Вы хотите сохранить изменения в файлах?"))
+                switch (CloseDialogWindow($"Do you want to save changes to files?"))
                 {
                     case DialogResult.Yes:
                         needSave = 1;
@@ -466,10 +465,10 @@ namespace Main
                         break;
                 }
             }
-            // Пользователь отменил опрецию закрытия.
+            // The user canceled the closing option.
             if (needSave == 0)
                 return;
-            // Идем по всем открытым и сохраняем изменения или не принимаем их.
+            // We go through all the open ones and save the changes or do not accept them.
             FileInUse[] copyFiles = new FileInUse[files.Count];
             files.CopyTo(copyFiles);
             foreach (var i in copyFiles)
@@ -477,13 +476,13 @@ namespace Main
                 curFile = i;
                 if (needSave == -1)
                 {
-                    // Если сохранять файлы не надо, просто считаем, что они сохранены тк не нужно применять изменения.
+                    // If you don't need to save the files, we just assume that they are saved because you don't need to apply the changes.
                     curFile.IsSaved = true;
                 }
                 else
                 {
-                    // Если нужно сохранять файлы, то каждый будет сохраняться, но если он не сохранился,
-                    // значит была отмена или ошибка и этот файл нельзя сохранить.
+                    // If you need to save files, then each one will be saved, but if it is not saved,
+                    // it means there was a cancellation or an error and this file cannot be saved.
                     SaveCurrentFile(sender, e);
                     if (!curFile.IsSaved)
                     {
@@ -494,28 +493,28 @@ namespace Main
         }
 
         /// <summary>
-        /// Функция для журналирования файлов после их сохранения.
+        /// Function for logging files after saving them.
         /// </summary>
         private void Logging()
         {
-            // Проверка, что есть то, что сохранять и кнопка нажата.
+            // Checking that there is something to save and the button is pressed.
             if (curFile != null && loggingToolStripMenuItem.Checked)
             {
-                // Создаем путь к папке с логами для конкретного файла ..\NotePad+2.0\Logs\*fileName
+                // Creating a path to the folder with logs for a specific file..\NotePad+2.0\Logs\*fileName
                 string path = Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\..\", "Logs", Path.GetFileName(curFile.FileName));
                 if (!Directory.Exists(path))
                 {
                     HideLogDirectory();
                     Directory.CreateDirectory(path);
                 }
-                // Хранятся только последние 3 версии. Удаляется самая старая.
+                // Only the latest 3 versions are stored. The oldest one is being deleted.
                 if (Directory.GetFiles(path).Length == 3)
                 {
-                    // Сортируем, так как они создаюся с именами, отличающимися только податам и врмени все норм.
+                    // We sort them, since they are created with names that differ only in the dates and in the place of all the norms.
                     Array.Sort(Directory.GetFiles(path));
                     File.Delete(Directory.GetFiles(path)[0]);
                 }
-                // Новый путь: ..\NotePad+2.0\Logs\fileName\fileName Date Time
+                // New Path: ..\NotePad+2.0\Logs\fileName\fileName Date Time
                 string newFile = Path.GetFileName(curFile.FileName) + " " + DateTime.Now.ToString().Replace(':', '-')
                     + Path.GetExtension(curFile.FileName);
                 File.Copy(curFile.FileName, Path.Combine(path, newFile));
@@ -524,8 +523,8 @@ namespace Main
         }
 
         /// <summary>
-        /// Вспомогательный метод для того, чтобы если кто-то удалил папку Logs, то когда ее достроет метод Logging
-        /// сделать сново скрытой.
+        /// Auxiliary method so that if someone deleted the Logs folder, then when the Logging method gets it
+        /// make it hidden again.
         /// </summary>
         private static void HideLogDirectory()
         {
@@ -538,118 +537,118 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события закрытия окна.
+        /// Handler for the window closing event.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void Form1Closing(Object sender, FormClosingEventArgs e)
         {
-            // Закрываем все окна. Как нажатие на кнопки "Закрыть все".
+            // Closing all windows. Like clicking on the "Close All" button.
             CloseAllTabsFunc(closeAllTabsToolStripMenuItem, e);
-            // Если все вкладки закрыты, то есть все сохранились в нужном состоянии.
-            if (!files.Exists(x => x.IsSaved == false))
+            // If all tabs are closed, that is, all are saved in the desired state.
+            if (!files.Exists(x => x.issued == false))
             {
-                // Смена родительской(главной) формы, если есть еще открытые формы, помимо текущей.
+                // Changing the parent(main) form if there are still open forms besides the current one.
                 if (MyForms.GetOpened(this) != null)
                 {
 
-                    // Меняем форму.
+                    // Changing the shape.
                     Program.s_context.MainForm = MyForms.GetOpened(this);
-                    // Закрываем текущую.
+                    // Closing the current one.
                     MyForms.Close(this);
-                    // Переключаемся на новую главную форму.
+                    // Switch to the new main form.
                     Program.s_context.MainForm.Focus();
                 }
                 else
                 {
-                    // Если текущая форма - последняя, то выполняем сохранение настроек.
+                    // If the current form is the last one, then we save the settings.
                     SaveSettings();
                 }
             }
             else
             {
-                // Не со всеми файлами был решено вопрос о применении сохранений => форму не закрываем.
+                // The issue of applying saves was not resolved with all files => we do not close the form.
                 e.Cancel = true;
             }
         }
 
         /// <summary>
-        /// Обработчик нажатия на одного из элементов меню "0 секунд", "1 секунда", "5 секунд", "30 секунд", "60 секунд".
+        /// Handler for clicking on one of the menu items "0 seconds", "1 second", "5 seconds", "30 seconds", "60 seconds".
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void ChangeIntervalTime(object sender, EventArgs e)
         {
-            // Убираем галочки со всех пунтков.
+            // Uncheck all punts.
             fiveSecInterval.Checked = false;
             zeroSecInterval.Checked = false;
             twoSecInterval.Checked = false;
             thirtySecInterval.Checked = false;
             sixtySecInterval.Checked = false;
-            // Если нажали на "0 секунд", то нужно просто выключить сохранение.
-            if (sender.ToString() == "0 секунд")
+            // If you clicked on "0 seconds", then you just need to turn off saving.
+            if (sender.toString() == "0 seconds")
             {
                 zeroSecInterval.Checked = true;
                 timer.Enabled = false;
                 return;
             }
-            // Определяем контрол.
+            // Defining the control.
             ToolStripMenuItem chosen = (ToolStripMenuItem)sender;
             timer.Enabled = true;
-            // Делаем его нажатым.
+            // Making it pressed.
             chosen.Checked = true;
-            // Установка промежутка времени, т.е. берем первое число из названия элемента меню, умноженное на 1000.
+            // Setting the time interval, i.e. taking the first number from the name of the menu item multiplied by 1000.
             timer.Interval = int.Parse(chosen.Text.Split()[0]) * 1000;
             return;
 
         }
         /// <summary>
-        /// Обработчик действий на каждое срабатывание таймера.
+        /// An action handler for each timer trigger.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void TimerTick(object sender, EventArgs e)
         {
-            // Рботает только с неновыми файлами, чтобы не мешать вызовом диалогого окна
+            // Works only with non-text files, so as not to interfere with calling the dialog box
             if (curFile != null && !curFile.IsNew)
                 SaveCurrentFile(sender, e);
         }
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Цвет поля для ввода".
+        /// Handler for the event of clicking on the "Input field color" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void ChangeTextBoxBackGround(object sender, EventArgs e)
         {
-            // Если есть открытый файл, и пользователь не отменил выбор цвета.
+            // If there is an open file and the user has not canceled the color selection.
             if (curFile != null && colorDialog.ShowDialog() == DialogResult.OK)
             {
                 curFile.TextBox.BackColor = colorDialog.Color;
             }
         }
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Цвет текста в поле для ввода".
+        /// Handler for the event of clicking on the "Text color in the input field" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void ChangeTextColor(object sender, EventArgs e)
         {
-            // Если есть открытый файл, и пользователь не отменил выбор цвета.
+            // If there is an open file and the user has not canceled the color selection.
             if (curFile != null && colorDialog.ShowDialog() == DialogResult.OK)
-                // Если ничего не выбрано, то смениться текст ввода просто.
+                // If nothing is selected, it is easy to change the input text.
                 curFile.TextBox.SelectionColor = colorDialog.Color;
         }
 
         /// <summary>
-        /// Обработчик событий "Скопировать" и "Вырезать".
+        /// The handler of the "Copy" and "Cut" events.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void SetTextInClipBoard(object sender, EventArgs e)
         {
             if (curFile != null)
             {
-                if (sender.ToString().Contains("Вырезать"))
+                if (sender.ToString().Contains("Cut"))
                 {
                     curFile.TextBox.Cut();
                 }
@@ -661,29 +660,29 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события "Вставить".
+        /// Handler of the "Insert" event.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void PasteTextFromClipBoard(object sender, EventArgs e)
         {
             IDataObject iData = Clipboard.GetDataObject();
-            // Проверка, что пользователь хочет вставить именно текст.
+            // Checking that the user wants to insert exactly the text.
             if (iData.GetDataPresent(DataFormats.Text))
             {
                 curFile.TextBox.Paste();
             }
             else
             {
-                MessageBox.Show("Вставить можно только текст!");
+                MessageBox.Show("Only text can be inserted!");
             }
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Форматировать".
+        /// Handler for the event of clicking on the "Format" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void ChangeSelectedTextFont(object sender, EventArgs e)
         {
             if (curFile != null && fontDialog.ShowDialog() == DialogResult.OK)
@@ -691,20 +690,20 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Выбрать все".
+        /// Event handler for clicking on the "Select all" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void SelectAllText(object sender, EventArgs e)
         {
             curFile.TextBox.SelectAll();
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Undo".
+        /// Handler for the "Undo" button click event.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void UndoClick(object sender, EventArgs e)
         {
             if (curFile != null)
@@ -712,10 +711,10 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Redo".
+        /// Handler for the "Redo" button click event.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void RedoClick(object sender, EventArgs e)
         {
             if (curFile != null)
@@ -723,38 +722,38 @@ namespace Main
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Цвет окна приложения".
+        /// Handler for the event of clicking on the "Application window color" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void ChangeBackColorOfTheForm(object sender, EventArgs e)
         {
             if (colorDialog.ShowDialog() == DialogResult.OK)
             {
-                // Смена цвета окна.
+                // Changing the window color.
                 this.BackColor = colorDialog.Color;
-                // Вызов метода, который красит все элементы в цвет окна.
+                // Calling a method that paints all elements in the window color.
                 SetFormColor();
             }
         }
 
         /// <summary>
-        /// Обработчик события нажатия на кнопку "Цвет текста окна приложения".
+        /// Handler for the event of clicking on the "Application window text color" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void ChangeForeColorOfTheForm(object sender, EventArgs e)
         {
             if (colorDialog.ShowDialog() == DialogResult.OK)
             {
-                // Смена цвета окна.
+                // Changing the window color.
                 this.ForeColor = colorDialog.Color;
-                // Вызов метода, который красит все элементы в цвет окна.
+                // Calling a method that paints all elements in the window color.
                 SetFormColor();
             }
         }
         /// <summary>
-        /// Вспомогательный метод для окраски всех элементов меню в цвет окна(и текст, и фон).
+        /// Auxiliary method for coloring all menu items in the window color (both text and background).
         /// </summary>
         private void SetFormColor()
         {
@@ -764,11 +763,11 @@ namespace Main
             menuStrip.ForeColor = this.ForeColor;
         }
         /// <summary>
-        /// Рекурсивный метод обхода всех элементов меню, начиная с item.
+        /// A recursive method of traversing all menu items, starting with item.
         /// </summary>
-        /// <param name="item">Элемент, который красят и у которого смотреть подразделы.</param>
-        /// <param name="newBackColor">Новый цвет фона.</param>
-        /// <param name="newForeColor">Новый цвет текста.</param>
+        /// <param name="item">The element that is being painted and which has subsections to look at.</param>
+        /// <param name="newBackColor">New background color.</param>
+        /// <param name="newForeColor">New text color.</param>
         private void SetColor(ToolStripMenuItem item, Color newBackColor, Color newForeColor)
         {
             item.BackColor = newBackColor;
@@ -777,24 +776,24 @@ namespace Main
                 SetColor(curItem, newBackColor, newForeColor);
         }
         /// <summary>
-        /// Обработчик нажатия на кнопку "Закрыть все".
+        /// Handler for clicking on the "Close all" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void FormHotKeyToClose(object sender, EventArgs e)
         {
             this.Close();
         }
         /// <summary>
-        /// Обработчик нажатия на кнопку "Сохранить все".
+        /// Handler for clicking on the "Save all" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void SaveAllFiles(object sender, EventArgs e)
         {
-            // Запоминаем текущий, чтобы потом снова на него "переключиться".
+            // We remember the current one so that we can "switch" to it again later.
             FileInUse rememberFile = curFile;
-            // Обход всех файлов с их сохранением.
+            // Bypass all files and save them.
             foreach (var file in files)
             {
                 curFile = file;
@@ -806,50 +805,50 @@ namespace Main
             curFile = rememberFile;
         }
         /// <summary>
-        /// Метод для сохранения настроек, установленных в последнем окне и у последней открытой вкладки,
-        /// если такая была.
+        /// Method for saving the settings set in the last window and at the last open tab,
+        /// if there was one.
         /// </summary>
-        private void SaveSettings()
+        private void saveSettings()
         {
-            // Собираем список файлов, которые были открыт в последнем окне.
+            // Collecting a list of files that were opened in the last window.
             List<string> addition = new();
             foreach (var i in files)
             {
-                // Сохраняем неновые файлы, которые были открыты.
+                // Saving non-text files that were opened.
                 if (!i.IsNew)
                 {
                     addition.Add(i.FileName);
                 }
-                // Сохраняем настройки каждой открытой вкладки, чтобы остались настройки только последней.
+                // We save the settings of each open tab so that only the settings of the last one remain.
                 Properties.Settings.Default.textBoxBack = i.TextBox.BackColor;
                 i.TextBox.Select(0, 1);
                 Properties.Settings.Default.textInBoxColor = i.TextBox.SelectionColor;
                 Properties.Settings.Default.textBoxFont = i.TextBox.SelectionFont;
                 Properties.Settings.Default.logging = i.Log;
             }
-            // Сохраняем цветовые настройки формы.
+            // Saving the color settings of the form.
             Properties.Settings.Default.formTextColor = this.ForeColor;
             Properties.Settings.Default.formBack = this.BackColor;
-            // Добавляем список открытых, сохраненных файлов.
+            // Adding a list of open, saved files.
             Properties.Settings.Default.files.AddRange(addition.ToArray());
-            // Сохраняем статус таймера.
+            // Saving the timer status.
             Properties.Settings.Default.timerIntervalFlag = timer.Enabled;
             Properties.Settings.Default.timerIntervalVal = timer.Interval;
             Properties.Settings.Default.Save();
         }
         /// <summary>
-        /// Метод для восстановления настроек, оставшихся после закрытия.
+        /// Method for restoring the settings left after closing.
         /// </summary>
         private void SetSettingss()
         {
             foreach (var file in Properties.Settings.Default.files)
             {
-                // Пробуем открыть файлы, которые были открыты при закрытии.
-                if (ShowText(file, out string text))
+                // Trying to open files that were opened when closing.
+                if (showText(file, out string text))
                 {
-                    // Отркываем в отдельной вкладке.
+                    // We print it in a separate tab.
                     CreateTheTab(this, text, file, false);
-                    // Устанавливаем настройки RichTextBox'a.
+                    // Setting the RichTextBox settings.
                     curFile.TextBox.BackColor = Properties.Settings.Default.textBoxBack;
                     curFile.TextBox.SelectAll();
                     curFile.TextBox.SelectionColor = Properties.Settings.Default.textInBoxColor;
@@ -864,21 +863,21 @@ namespace Main
                     MessageBox.Show(text);
                 }
             }
-            // Настройки цвета окна и текста, установка параметров таймера.
+            // Window and text color settings, setting timer parameters.
             this.BackColor = Properties.Settings.Default.formBack;
             this.ForeColor = Properties.Settings.Default.formTextColor;
             timer.Enabled = Properties.Settings.Default.timerIntervalFlag;
             timer.Interval = Properties.Settings.Default.timerIntervalVal;
-            // Перекрашиваем меню.
+            // Repainting the menu.
             SetCheckedInterval();
-            // Ставим галочку у промежутка времени нужного.
+            // Check the appropriate time interval.
             SetFormColor();
             Properties.Settings.Default.files.Clear();
         }
 
         /// <summary>
-        /// Вспомогательный метод, чтобы определить, по заданному интервалу времени таймера, у какого элемента
-        /// меню с выбором периодичности сохранения нужно поставить галочку.
+        /// Auxiliary method to determine, by a given timer time interval, which element
+        /// the menu with the choice of the frequency of saving needs to be ticked.
         /// </summary>
         private void SetCheckedInterval()
         {
@@ -887,23 +886,23 @@ namespace Main
                 foreach (var i in new List<ToolStripMenuItem>() {zeroSecInterval, twoSecInterval, fiveSecInterval,
                                                                   thirtySecInterval, sixtySecInterval})
                 {
-                    // Берем число из названия элемента управления и проверяем на соответствие заданному интервалу.
+                    // We take a number from the name of the control and check for compliance with the specified interval.
                     i.Checked = i.Text.Split()[0] == (timer.Interval / 1000).ToString();
                 }
             }
         }
         /// <summary>
-        /// Обработчик нажатия на кнопку "Сохранять предыдущую версию".
+        /// Handler for clicking on the "Save previous version" button.
         /// </summary>
-        /// <param name="sender">Источник события.</param>
-        /// <param name="e">Параметры события.</param>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">Event parameters.</param>
         private void LogFilesSwitch(object sender, EventArgs e)
         {
             if (curFile != null && !curFile.IsNew)
             {
-                // Если есть открытый неновый файл, то меняем "переключатель" на журналирование.
+                // If there is an open non-text file, then change the "switch" to logging.
                 loggingToolStripMenuItem.Checked = !loggingToolStripMenuItem.Checked;
-                // Меняем то же самое у открытого файла
+                // We change the same for the open file
                 curFile.Log = !curFile.Log;
             }
         }

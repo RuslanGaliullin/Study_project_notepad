@@ -5,36 +5,36 @@ using System.Windows.Forms;
 namespace Main
 {
     /// <summary>
-    ///  Тип данных FileInUse, используемый для присваивании соответствующих свойств файлам, который открыты в окне.
+    /// The FileInUse data type used to assign appropriate properties to files that are open in the window.
     /// </summary>
     internal sealed class FileInUse
     {
         /// <summary>
-        /// Имя файла.
+        /// File name.
         /// </summary>
         public string FileName { get; set; }
         /// <summary>
-        /// Проверка на то, что файл сохранен уже.
+        /// Checking that the file has already been saved.
         /// </summary>
         public bool IsSaved { get; set; }
         /// <summary>
-        /// Параметр того, что файл создан в приложении и не сохранен на компьютер.
+        /// The parameter that the file was created in the application and not saved to the computer.
         /// </summary>
         public bool IsNew { get; set; }
         /// <summary>
-        /// Параметр того, что у файла нужно сохранять прошлые версии.
+        /// The parameter that the file needs to keep past versions.
         /// </summary>
         public bool Log { get; set; }
         /// <summary>
-        /// Вкладка, которой принадлежит файл.
+        /// The tab that the file belongs to.
         /// </summary>
         public TabPage TabPage { get; init; }
         /// <summary>
-        /// RichTextBox, который привязан к файлу, т.е. в нем показывается содержимое файла.
+        /// RichTextBox, which is linked to the file, i.e. it shows the contents of the file.
         /// </summary>
         public RichTextBox TextBox { get; private set; }
 
-        // Конструктор.
+        // Constructor.
         public FileInUse(string fileName, RichTextBox text, TabPage tabPage, bool isNew)
         {
 
@@ -48,36 +48,36 @@ namespace Main
     }
 
     /// <summary>
-    /// Статический класс для взаимодействия с окнами приложения.
+    /// A static class for interacting with application windows.
     /// </summary>
     internal static class MyForms
     {
-        // Список открытых форм.
+        // List of open forms.
         private static readonly List<Form1> s_windows = new();
 
         /// <summary>
-        /// Метод, возвращающий первую открытую форму, отличную от текущей.
+        /// Method that returns the first open form other than the current one.
         /// </summary>
-        /// <param name="curForm">Текущая главная форма.</param>
-        /// <returns>Новую откртыую форму или null, если ее нет.</returns>
+        /// <param name="curForm">The current main form.</param>
+        /// <returns>A new open form, or null if it does not exist.</returns>
         public static Form1 GetOpened(Form curForm)
         {
             return s_windows.Find(x => x != curForm);
         }
 
         /// <summary>
-        /// Метод удаления формы из открытых.
+        /// Method of deleting a form from open.
         /// </summary>
-        /// <param name="form">Форма для удаления.</param>
+        /// <param name="form">The form to delete.</param>
         public static void Close(Form1 form)
         {
             s_windows.Remove(form);
         }
 
         /// <summary>
-        /// Метод добавления формы в список открытых формы.
+        /// Method of adding a form to the list of open forms.
         /// </summary>
-        /// <param name="form">Форма для добавления.</param>
+        /// <param name="form">Form to add.</param>
         public static void Add(Form1 form)
         {
             s_windows.Add(form);
